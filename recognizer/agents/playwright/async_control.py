@@ -94,11 +94,11 @@ class AsyncChallenger:
             return self.captcha_token
 
         with suppress(PlaywrightError, PatchrightError):
-            captcha_token: str = await self.page.evaluate("grecaptcha.getResponse()")
+            captcha_token: str = await self.page.evaluate("grecaptcha.getResponse()", isolated_context = False)
             return captcha_token
 
         with suppress(PlaywrightError, PatchrightError):
-            enterprise_captcha_token: str = await self.page.evaluate("grecaptcha.enterprise.getResponse()")
+            enterprise_captcha_token: str = await self.page.evaluate("grecaptcha.enterprise.getResponse()", isolated_context = False)
             return enterprise_captcha_token
 
         return None
