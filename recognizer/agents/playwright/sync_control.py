@@ -114,12 +114,21 @@ class SyncChallenger:
         return label_obj.is_visible()
 
     def click_checkbox(self) -> bool:
-        # Clicking Captcha Checkbox
         try:
-            checkbox = self.page.frame_locator("iframe[title='reCAPTCHA']").first
-            checkbox.locator(".recaptcha-checkbox-border").click()
+            # Wait for the reCAPTCHA frame to load
+            checkbox_frame = self.page.wait_for_selector("iframe[title='reCAPTCHA']", timeout=5000)
+            frame = checkbox_frame.content_frame()
+            if frame is None:
+                raise TimeoutError("reCAPTCHA frame not loaded.")
+
+            # Wait for the checkbox to become visible and clickable
+            checkbox = frame.locator(".recaptcha-checkbox-border")
+            checkbox.wait_for(state="visible", timeout=10000)
+            checkbox.click()
             return True
-        except (PlaywrightTimeoutError, PatchrightTimeoutError):
+
+        except TimeoutError as e:
+            print(f"[!] Checkbox click timed out: {e}")
             return False
 
     def adjust_coordinates(self, coordinates, img_bytes):
