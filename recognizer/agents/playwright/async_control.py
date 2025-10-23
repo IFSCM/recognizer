@@ -114,13 +114,24 @@ class AsyncChallenger:
         return await label_obj.is_visible()
 
     async def click_checkbox(self) -> bool:
-        # Clicking Captcha Checkbox
         try:
-            checkbox = self.page.frame_locator("iframe[title='reCAPTCHA']").first
-            await checkbox.locator(".recaptcha-checkbox-border").click()
+            # Wait for the reCAPTCHA frame to load
+            checkbox_frame = await self.page.wait_for_selector("iframe[title='reCAPTCHA']", timeout=5000)
+            frame = await checkbox_frame.content_frame()
+            if frame is None:
+                raise TimeoutError("reCAPTCHA frame not loaded.")
+
+            # Wait for the checkbox to become visible and clickable
+            checkbox = frame.locator(".recaptcha-checkbox-border")
+            await checkbox.wait_for(state="visible", timeout=10000)
+            await checkbox.click()
             return True
-        except (PlaywrightError, PatchrightError):
+
+        except TimeoutError as e:
+            print(f"[!] Checkbox click timed out: {e}")
             return False
+
+
 
     async def adjust_coordinates(self, coordinates, img_bytes):
         image: cv2.typing.MatLike = imread(img_bytes)
